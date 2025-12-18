@@ -6,10 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed:user": "node scripts/seed-user.js"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "mongoose": "^8.8.4",
     "next": "16.0.10",
+    "next-auth": "^5.0.0-beta.25",
     "react": "19.2.1",
     "react-dom": "19.2.1"
   },
