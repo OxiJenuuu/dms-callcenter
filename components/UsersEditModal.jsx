@@ -1,28 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 
+const makeId = () =>
+    globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+const normalizeAccess = (user) =>
+    (Array.isArray(user?.access) ? user.access : []).map((a) => ({
+        ...a,
+        _localId: makeId(),
+        permissions: Array.isArray(a?.permissions) ? a.permissions : [],
+        permissionsText: Array.isArray(a?.permissions) ? a.permissions.join(", ") : "",
+    }));
+
 export default function UsersEditModal({ user }) {
-    const makeId = () =>
-        globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const [username, setUsername] = useState(user?.username || "");
+    const [email, setEmail] = useState(user?.email || "");
+    const [name, setName] = useState(user?.name || "");
 
-    const [username, setUsername] = useState(user.username || "");
-    const [email, setEmail] = useState(user.email || "");
-    const [name, setName] = useState(user.name || "");
-
-    const [access, setAccess] = useState(() =>
-        (Array.isArray(user.access) ? user.access : []).map((a) => ({
-            ...a,
-            _localId: makeId(),
-            permissions: Array.isArray(a?.permissions) ? a.permissions : [],
-            permissionsText: Array.isArray(a?.permissions) ? a.permissions.join(", ") : "",
-        }))
-    );
+    const [access, setAccess] = useState(() => normalizeAccess(user));
 
     const [verifications, setVerifications] = useState(
-        user.verifications || { resetPassword: false }
+        user?.verifications || { resetPassword: false }
     );
+
+    useEffect(() => {
+        setUsername(user?.username || "");
+        setEmail(user?.email || "");
+        setName(user?.name || "");
+        setAccess(normalizeAccess(user));
+        setVerifications(user?.verifications || { resetPassword: false });
+    }, [user]);
 
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");

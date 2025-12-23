@@ -1,229 +1,149 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
-import { ChevronDown, ChevronRight, Pencil, Trash2, Plus } from "lucide-react";
-import UsersEditModal from "./UsersEditModal"
+import React, {useEffect, useState} from "react";
+import { Pencil, Trash2 } from "lucide-react";
+import UsersEditModal from "@/components/UsersEditModal";
 
-export default function UsersTable() {
+export default function UsersTable(){
     const [loading, setLoading] = useState(true);
-    const [users, setUsers] = useState([]);
-    const [expandedId, setExpandedId] = useState(null);
     const [error, setError] = useState("");
+    const [users, setUsers] = useState([]);
+    const [selectedUser, setSelectedUser] = useState(null);
 
-    useEffect(() => {
-        let alive = true;
+    function openModal(user){
+        setSelectedUser(user);
+        document.getElementById(`UsersEditModal`).showModal();
+    }
 
-        (async () => {
+    async function deleteUser(userID){
+        setError("");
+
+        try {
+            const res = await fetch(`/api/users`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: userID }),
+            });
+            const data = await res.json().catch(() => ({}));
+
+            if(!res.ok){
+                setError(data?.message || `Eroare (${res.status})`);
+                return;
+            }
+            // else{
+            //     setUsers(data.users);
+            // }
+        } catch (error) {
+            setError(error?.message || `Eroare la preluarea datelor`);
+        }
+    }
+
+    useEffect(()=>{
+
+        const getUsers = async () => {
+            setError("");
+
             try {
-                setLoading(true);
-                setError("");
+                const res = await fetch("/api/users");
+                const data = await res.json().catch(() => ({}));
 
-                const res = await fetch("/api/users", { cache: "no-store" });
-                if (!res.ok) {
-                    const data = await res.json().catch(() => ({}));
-                    throw new Error(data?.message || `Request failed (${res.status})`);
+                if(!res.ok){
+                    setError(data?.message || `Eroare (${res.status})`);
+                    return;
+                }else{
+                    setUsers(data.users);
                 }
-
-                const data = await res.json();
-                if (!alive) return;
-
-                setUsers(Array.isArray(data.users) ? data.users : []);
-            } catch (e) {
-                if (!alive) return;
-                setError(e.message || "Eroare");
+            } catch (error){
+                setError(error?.message || `Eroare la preluarea datelor`);
             } finally {
-                if (!alive) return;
                 setLoading(false);
             }
-        })();
-
-        return () => {
-            alive = false;
-        };
-    }, []);
-
-    const toggleExpand = (id) => setExpandedId((cur) => (cur === id ? null : id));
-
-    const verifBadge = (label, value) => {
-        if (typeof value === "string") {
-            const v = value.trim();
-            if (!v) return null;
-
-            return (
-                <span className="badge badge-success badge-sm">
-                    {/*{label}*/}
-                    {v}
-                </span>
-            );
         }
+        getUsers();
 
-        if (typeof value === "boolean") {
-            return (
-                <span className={`badge select-none ${value ? "badge-success" : "badge-error"} badge-sm`}>
-                    {/*{label}*/}
-                    {value ? "Activ" : "Inactiv"}
-                </span>
-            );
-        }
-        return null;
-    };
+    }, [])
 
-    const onEdit = (u) => console.log("edit user:", u._id);
-    const onDelete = (u) => console.log("delete user:", u._id);
+    useEffect(() => {
 
-    if (loading) {
+    }, [users])
+
+    if(loading){
         return (
-            <div className="w-full flex items-center justify-center py-10">
-                <span className="loading loading-spinner loading-md"></span>
+            <div className="w-full h-full skeleton flex items-center justify-center">
+                <span className="loading loading-spinner loading-xl text-primary"></span>
             </div>
-        );
+        )
     }
 
-    if (error) {
-        return (
-            <div className="alert alert-error">
-                <span>{error}</span>
-            </div>
-        );
-    }
+    return(
+        <section className="overflow-x-auto p-4">
 
-    return (
-        <div className="overflow-x-auto p-4">
-            <table className="table table-zebra">
-                <thead>
-                <tr>
-                    <th className="w-12"></th>
-                    <th>Nume</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Resetare Parola</th>
-                    <th>Creat</th>
-                    <th className="w-12"></th>
-                </tr>
-                </thead>
+            {error && (
+                <div className="w-full h-8 flex items-center justify-center bg-error rounded-md">
+                    <p className="font-bold">{error}</p>
+                </div>
+            )}
 
-                <tbody>
-                {users.map((u) => {
-                    const isOpen = expandedId === u._id;
-                    const v = u.verifications || {};
-                    const access = Array.isArray(u.access) ? u.access : [];
-
-                    return (
-                        <React.Fragment key={u._id}>
-                            <tr>
-                                <td>
-                                    <button
-                                        className="btn btn-ghost btn-xs tooltip"
-                                        data-tip="Permisiuni"
-                                        onClick={() => toggleExpand(u._id)}
-                                        aria-label="expand"
-                                        type="button"
-                                    >
-                                        {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            <div className="overflow-x-auto">
+                <table className="table">
+                    <thead>
+                    <tr>
+                        <th>crt.</th>
+                        <th>DATABASE ID</th>
+                        <th>Nume Prenume</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Telefon</th>
+                        <th>Creat</th>
+                        <th>Resetare Parola</th>
+                        <th>Login</th>
+                        <th>IP Addr</th>
+                        <th className="select-none">Actiuni</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {users.map((user, index) => (
+                            <tr key={user._id} className="hover:opacity-90">
+                                <th>{index + 1}</th>
+                                <th>{user._id}</th>
+                                <th>{user.name}</th>
+                                <th>{user.username}</th>
+                                <th>{user.email}</th>
+                                <th>soon</th>
+                                <th>{new Date(user.createdAt).toLocaleDateString('ro-RO')}</th>
+                                <th>
+                                    <button className={user.verifications.createPassword === "" ? "" : "hover:cursor-pointer hover:text-success tooltip"}
+                                            data-tip="Copieaza link">
+                                        {user.verifications.createPassword}
                                     </button>
-                                </td>
+                                </th>
+                                <th>soon</th>
+                                <th>soon</th>
+                                <th className="flex items-center justify-center gap-2 select-none">
+                                    <button
+                                        onClick={() => openModal(user)}
+                                        className="tooltip hover:text-info hover:cursor-pointer" data-tip="Editeaza">
+                                        <Pencil size={16}/>
+                                    </button>
 
-                                <td>{u.name || "-"}</td>
-                                <td>{u.username || "-"}</td>
-                                <td>{u.email || "-"}</td>
-
-                                <td>
-                                    <div className="flex flex-wrap gap-2">
-                                        {verifBadge("Reset", v.resetPassword)}
-                                        {verifBadge("Code", v.createPassword)}
-                                    </div>
-                                </td>
-
-                                <td>{u.createdAt ? new Date(u.createdAt).toLocaleString("ro-RO") : "-"}</td>
-
-                                <td className="text-right">
-                                    <div className="inline-flex gap-2">
-                                        <button
-                                            className="btn btn-ghost btn-sm tooltip"
-                                            data-tip="Editeaza"
-                                            type="button"
-                                            onClick={()=>document.getElementById('UsersEditModal').showModal()}
-                                            aria-label="edit"
-                                        >
-                                            <Pencil size={18} />
-                                        </button>
-
-                                        <dialog id="UsersEditModal" className="modal">
-                                            <div className="modal-box max-w-2xl">
-                                                <UsersEditModal user={u} />
-                                            </div>
-                                        </dialog>
-
-                                        <button
-                                            className="btn btn-ghost btn-sm text-error tooltip"
-                                            data-tip="Sterge"
-                                            type="button"
-                                            onClick={() => onDelete(u)}
-                                            aria-label="delete"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                </td>
+                                    <button
+                                        onClick={() => deleteUser(user._id)}
+                                        className="tooltip hover:text-error hover:cursor-pointer" data-tip="Sterge">
+                                        <Trash2 size={16}/>
+                                    </button>
+                                </th>
                             </tr>
+                    )) }
+                    </tbody>
+                </table>
 
-                            {isOpen && (
-                                <tr>
-                                    <td colSpan={7}>
-                                        <div className="bg-base-200 rounded-lg p-4">
-                                            <p className="font-semibold mb-3">Access</p>
+                <dialog id={`UsersEditModal`} className="modal">
+                    <div className="modal-box max-w-2xl">
+                        {selectedUser && <UsersEditModal user={selectedUser}/>}
+                    </div>
+                </dialog>
+            </div>
 
-                                            {access.length === 0 ? (
-                                                <div className="text-sm text-base-content/70">
-                                                    Nu exista access setat.
-                                                </div>
-                                            ) : (
-                                                <div className="overflow-x-auto">
-                                                    <table className="table table-sm">
-                                                        <thead>
-                                                        <tr>
-                                                            <th>Page</th>
-                                                            <th>Href</th>
-                                                            <th>Permissions</th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                        {access.map((a, idx) => {
-                                                            const perms = Array.isArray(a.permissions) ? a.permissions : [];
-                                                            const rowKey = a._id || `${u._id}-${a.page || "p"}-${a.href || "h"}-${idx}`;
-
-                                                            return (
-                                                                <tr key={rowKey}>
-                                                                    <td>{a.page || "-"}</td>
-                                                                    <td>{a.href || "-"}</td>
-                                                                    <td>
-                                                                        <div className="flex flex-wrap gap-2">
-                                                                            {perms.map((p) => (
-                                                                                <span
-                                                                                    key={`${rowKey}-perm-${p}`}
-                                                                                    className="badge badge-outline badge-sm"
-                                                                                >
-                                                                                    {p}
-                                                                                </span>
-                                                                            ))}
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        })}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </React.Fragment>
-                    );
-                })}
-                </tbody>
-            </table>
-        </div>
-    );
+        </section>
+    )
 }

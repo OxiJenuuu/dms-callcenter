@@ -8,10 +8,10 @@ export default function UsersAddButton() {
         <>
             <div className="fab">
                 <button
-                    className="btn bg-success p-4 text-success-content rounded-full hover:opacity-90 hover:cursor-pointer"
+                    className="btn bg-primary p-4 text-success-content rounded-full hover:opacity-90 hover:cursor-pointer"
                     onClick={()=>document.getElementById('UsersAddModal').showModal()}
                 >
-                    <Plus size={24}/>
+                    <Plus size={24} className="text-primary-content"/>
                 </button>
             </div>
 
