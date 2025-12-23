@@ -3,8 +3,10 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Logs, UserStar, Book } from "lucide-react";
 import LogoutButton from "@/components/LogoutButton";
+
+import { LayoutDashboard, Logs, MapPlus,
+    UserStar, Book, CircleQuestionMark } from "lucide-react";
 
 export default function Navbar() {
     const { data: session } = useSession();
@@ -15,6 +17,7 @@ export default function Navbar() {
         logs: Logs,
         users: UserStar,
         permissions: Book,
+        locations: MapPlus,
     };
 
     const accessList = session.user.access || [];
@@ -23,7 +26,7 @@ export default function Navbar() {
     const rest = accessList.filter((a) => a.page !== "dashboard");
 
     function NavItem({ access }) {
-        const Icon = icons[access.page] || LayoutDashboard;
+        const Icon = icons[access.page] || CircleQuestionMark;
 
         const clean = (v = "") =>
             `/${v}`.replace(/\/+/g, "/").replace(/\/$/, "") || "/";

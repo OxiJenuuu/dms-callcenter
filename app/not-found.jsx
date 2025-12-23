@@ -15,7 +15,7 @@ export default function NotFound(){
 
                 <div className="flex justify-center">
                     <a
-                        href="/public"
+                        href="/"
                         className="text-primary font-medium hover:underline hover:cursor-pointer"
                     >
                         Intoarce-te la pagina principala

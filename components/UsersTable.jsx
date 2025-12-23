@@ -9,6 +9,7 @@ export default function UsersTable(){
     const [error, setError] = useState("");
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
+    const [searchTerm, setSearchTerm] = useState("");
 
     function openModal(user){
         setSelectedUser(user);
@@ -34,15 +35,13 @@ export default function UsersTable(){
             //     setUsers(data.users);
             // }
         } catch (error) {
-            setError(error?.message || `Eroare la preluarea datelor`);
+            setError(error?.message || `Eroare la stergerea datelor`);
         }
     }
 
     useEffect(()=>{
-
-        const getUsers = async () => {
+        (async () => {
             setError("");
-
             try {
                 const res = await fetch("/api/users");
                 const data = await res.json().catch(() => ({}));
@@ -51,25 +50,29 @@ export default function UsersTable(){
                     setError(data?.message || `Eroare (${res.status})`);
                     return;
                 }else{
-                    setUsers(data.users);
+                    setUsers(data?.users);
                 }
             } catch (error){
                 setError(error?.message || `Eroare la preluarea datelor`);
             } finally {
                 setLoading(false);
             }
-        }
-        getUsers();
-
+        })()
     }, [])
 
-    useEffect(() => {
-
-    }, [users])
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    const filteredUsers = users.filter((user) => {
+        if (!normalizedSearch) return true;
+        const haystack = [user._id, user.name, user.username, user.email]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+        return haystack.includes(normalizedSearch);
+    });
 
     if(loading){
         return (
-            <div className="w-full h-full skeleton flex items-center justify-center">
+            <div className="w-full h-full skeleton flex items-center justify-center mb-4">
                 <span className="loading loading-spinner loading-xl text-primary"></span>
             </div>
         )
@@ -83,6 +86,16 @@ export default function UsersTable(){
                     <p className="font-bold">{error}</p>
                 </div>
             )}
+
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <input
+                    type="search"
+                    className="input bg-base-300 focus:outline-none focus:ring-0"
+                    placeholder="Cauta dupa nume, username, email, ID"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
 
             <div className="overflow-x-auto">
                 <table className="table">
@@ -102,13 +115,13 @@ export default function UsersTable(){
                     </tr>
                     </thead>
                     <tbody>
-                    {users.map((user, index) => (
+                    {filteredUsers.map((user, index) => (
                             <tr key={user._id} className="hover:opacity-90">
                                 <th>{index + 1}</th>
                                 <th>{user._id}</th>
                                 <th>{user.name}</th>
                                 <th>{user.username}</th>
-                                <th>{user.email}</th>
+                                <th><a href={`mailto:${user.email}`} className="hover:cursor-pointer tooltip" data-tip='Trimite mail'>{user.email}</a></th>
                                 <th>soon</th>
                                 <th>{new Date(user.createdAt).toLocaleDateString('ro-RO')}</th>
                                 <th>
@@ -119,7 +132,7 @@ export default function UsersTable(){
                                 </th>
                                 <th>soon</th>
                                 <th>soon</th>
-                                <th className="flex items-center justify-center gap-2 select-none">
+                                <th className="flex items-center gap-2 select-none">
                                     <button
                                         onClick={() => openModal(user)}
                                         className="tooltip hover:text-info hover:cursor-pointer" data-tip="Editeaza">

@@ -13,7 +13,7 @@ import {
     ChevronUp,
 } from "lucide-react";
 
-export default function PermissionList() {
+export default function DashboardPermissions() {
     const permissions = [
         // PAGE
         { name: "page.view", type: "page", description: "Poate vizualiza pagina respectiva", recommendation: "/*" },
@@ -23,6 +23,12 @@ export default function PermissionList() {
         { name: "user.modify", type: "user", description: "Poate modifica datele unui utilizator si permisiunile acestuia", recommendation: "/dashboard/users" },
         { name: "user.delete", type: "user", description: "Poate sterge utilizatorul", recommendation: "/dashboard/users" },
         { name: "user.add", type: "user", description: "Poate adauga utilizatori noi", recommendation: "/dashboard/users" },
+
+        // LOCATION
+        { name: "location.view", type: "location", description: "Poate vizualiza lista cu locatii", recommendation: "/dashboard/locations" },
+        { name: "location.modify", type: "location", description: "Poate modifica datele unuei locatii", recommendation: "/dashboard/locations" },
+        { name: "location.delete", type: "location", description: "Poate sterge locatia", recommendation: "/dashboard/locations" },
+        { name: "location.add", type: "location", description: "Poate adauga locatii noi", recommendation: "/dashboard/locations" },
 
         // APP
         { name: "app.restart", type: "app", description: "Poate da restart la platforma", recommendation: "/dashboard/app" },

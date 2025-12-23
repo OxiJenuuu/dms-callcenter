@@ -130,9 +130,9 @@ export async function DELETE(req) {
     const user = await User.findByIdAndDelete({ _id: body.id });
     if(!user) return NextResponse.json({ message: "Acest utilizator nu exista" }, { status: 404 });
 
-    const users = await User.find({})
-        .select("_id name username email phone createdAt verifications access")
-        .lean();
+    // const users = await User.find({})
+    //     .select("_id name username email phone createdAt verifications access")
+    //     .lean();
 
-    return NextResponse.json({ users }, { status: 200 });
+    return NextResponse.json({ message: "A fost sters cu succes" }, { status: 200 });
 }

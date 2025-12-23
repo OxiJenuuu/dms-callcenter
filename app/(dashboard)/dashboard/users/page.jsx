@@ -1,4 +1,4 @@
-import UsersTable from "@/components/UsersTabel";
+import UsersTable from "@/components/UsersTable";
 import UsersAddButton from "@/components/UsersAddButton";
 
 export default async function DashboardUsers() {
